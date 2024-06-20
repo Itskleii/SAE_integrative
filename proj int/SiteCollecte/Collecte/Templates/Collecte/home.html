@@ -1,0 +1,62 @@
+<!-- collecte/templates/collecte/home.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil - SiteCollecte</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .sensor-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .sensor-container h2 {
+            margin-bottom: 5px;
+        }
+        .temperature-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .temperature-list li {
+            margin-bottom: 5px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            setInterval(function() {
+                $.ajax({
+                    url: window.location.href,
+                    success: function(data) {
+                        $('#sensor_data').html($(data).find('#sensor_data').html());
+                    }
+                });
+            }, 5000); // Actualiser toutes les 5 secondes
+        });
+    </script>
+</head>
+<body>
+    <h1>Bienvenue sur SiteCollecte</h1>
+    
+    <div id="sensor_data">
+        {% for sensor_item in sensor_data %}
+            <div class="sensor-container">
+                <h2>{{ sensor_item.sensor.piece }} - {{ sensor_item.sensor.sensor_id }}</h2>
+                <p>Timestamp d'ajout: {{ sensor_item.temperature_data.0.timestamp }}</p>
+                
+                <h3>Températures enregistrées</h3>
+                <ul class="temperature-list">
+                    {% for data in sensor_item.temperature_data %}
+                        <li>{{ data.timestamp }} - {{ data.value }}°C</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

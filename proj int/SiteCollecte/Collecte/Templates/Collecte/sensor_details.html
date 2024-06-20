@@ -1,0 +1,37 @@
+<!-- collecte/templates/collecte/sensor_detail.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if sensor %}Détails du capteur - {{ sensor.sensor_id }}{% else %}Liste des capteurs{% endif %} - SiteCollecte</title>
+</head>
+<body>
+    <h1>{% if sensor %}Détails du capteur - {{ sensor.sensor_id }}{% else %}Liste des capteurs{% endif %}</h1>
+
+    {% if sensor %}
+        <p>Sensor ID: {{ sensor.sensor_id }}</p>
+        <p>Piece: {{ sensor.piece }}</p>
+        <p>Emplacement: {{ sensor.emplacement }}</p>
+
+        <h2>Températures enregistrées</h2>
+        <ul>
+            {% for data in temperature_data %}
+                <li>{{ data.timestamp }} - {{ data.value }}°C</li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'sensor_list' %}">Retour à la liste des capteurs</a>
+    {% else %}
+        <ul>
+            {% for sensor in sensors %}
+                <li>
+                    <a href="{% url 'sensor_detail' sensor.id %}">Capteur {{ sensor.sensor_id }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'home' %}">Retour à l'accueil</a>
+    {% endif %}
+</body>
+</html>

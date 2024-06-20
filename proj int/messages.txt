@@ -1,0 +1,2 @@
+IUT/Colmar2024/SAE2.04/Maison1 b'Id=B8A5F3569EFF,piece=sejour,date=20/06/2024,time=13:04:47,temp=13.0'
+IUT/Colmar2024/SAE2.04/Maison1 b'Id=A72E3F6B79BB,piece=chambre1,date=20/06/2024,time=13:04:47,temp=24.23'

@@ -1,0 +1,21 @@
+<!-- collecte/templates/collecte/sensor_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des capteurs - SiteCollecte</title>
+</head>
+<body>
+    <h1>Liste des capteurs</h1>
+    <ul>
+        {% for sensor in sensors %}
+            <li>
+                <a href="{% url 'sensor_detail' sensor.id %}">{{ sensor.sensor_id }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'home' %}">Retour à l'accueil</a>
+</body>
+</html>
