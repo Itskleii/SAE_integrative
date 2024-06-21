@@ -59,8 +59,9 @@
                 </tr>
             </thead>
             <tbody>
+                {% for sensor_item in sensor_data %}
                 {% for temp_item in temp %}
-                    {% for sensor_item in sensor_data %}
+                    
                         <tr>
                             <td>{{ temp_item.id }} </td>
                             <td>{{ sensor_item.sensor.sensor_id }}</td>
