@@ -1,6 +1,6 @@
 import paho.mqtt.client as mqtt
 import pymysql
-from datetime import datetime
+from datetime import datetime, timedelta
 
 broker = "test.mosquitto.org"
 topic = "IUT/Colmar2024/SAE2.04/Maison1"
@@ -32,13 +32,42 @@ def on_message(client, userdata, msg):
 def process_message(message):
     data = {}
     for item in message.split(','):
-        key, value = item.split('=')
-        data[key.strip()] = value.strip()
+        key_value = item.split('=')
+        if len(key_value) == 2:
+            key = key_value[0].strip()
+            value = key_value[1].strip()
+            data[key] = value
+
+    # Vérifier si les clés nécessaires sont présentes
+    if 'Id' not in data or 'piece' not in data or ('date' not in data and ('time' not in data and 'heure' not in data)) or 'temp' not in data:
+        print("Message MQTT incomplet ou mal formé.")
+        return
 
     sensor_id = data['Id']
     piece = data['piece']
-    timestamp = datetime.strptime(f"{data['date']} {data['time']}", "%d/%m/%Y %H:%M:%S")
-    value = float(data['temp'])
+    
+    # Récupération de la date et de l'heure
+    if 'date' in data and 'time' in data:
+        timestamp_str = data['date']
+        time_str = data['time']
+    elif 'date' in data and 'heure' in data:
+        timestamp_str = data['date']
+        time_str = data['heure']
+    else:
+        print("Les clés 'date' et 'time'/'heure' ne sont pas présentes dans les données MQTT.")
+        return
+
+    try:
+        timestamp = datetime.strptime(f"{timestamp_str} {time_str}", "%d/%m/%Y %H:%M:%S")
+    except ValueError as e:
+        print(f"Erreur lors du parsing de la date/heure : {e}")
+        return
+
+    try:
+        value = float(data['temp'])
+    except ValueError as e:
+        print(f"Erreur lors de la conversion de la température en nombre : {e}")
+        return
 
     # Vérifier si le capteur existe déjà pour cette pièce
     if sensor_id not in sensors:
@@ -74,6 +103,23 @@ def process_message(message):
         print(f"Erreur lors de l'insertion des données : {e}")
         db.rollback()
 
+def delete_old_data():
+    try:
+        # Calculer la date et heure actuelle moins 1 heure
+        cutoff_time = datetime.now() - timedelta(hours=1)
+
+        # Construire et exécuter la requête de suppression
+        sql = "DELETE FROM temperaturedata WHERE timestamp < %s"
+        cursor.execute(sql, (cutoff_time,))
+        db.commit()
+
+        # Afficher un message de confirmation
+        print(f"{cursor.rowcount} enregistrements supprimés avant {cutoff_time}")
+    except pymysql.Error as e:
+        print(f"Erreur lors de la suppression des données : {e}")
+        db.rollback()
+
+
 # Configuration et lancement du client MQTT
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -85,6 +131,7 @@ client.connect(broker, port, 60)
 try:
     print("Démarrage de la boucle MQTT. Appuyez sur Ctrl+C pour arrêter.")
     client.loop_forever()
+    delete_old_data() 
 except KeyboardInterrupt:
     print("Interruption par l'utilisateur. Arrêt du programme.")
     client.disconnect()
