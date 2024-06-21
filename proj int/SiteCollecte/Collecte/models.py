@@ -22,4 +22,6 @@ class TemperatureData(models.Model):
         db_table = 'temperaturedata'
 
     def __str__(self):
-        return self.sensor_id, self.timestamp, self.value
+        return f"{self.sensor_id.sensor_id}, {self.timestamp}, {self.value}"
+
+

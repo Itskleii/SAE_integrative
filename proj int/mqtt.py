@@ -45,7 +45,7 @@ def process_message(message):
         sensors[sensor_id] = {
             'Nom': sensor_id,
             'Piece': piece,
-            'Emplacement': ''
+            'Emplacement': ''  # Si vous ne l'utilisez pas, vous pouvez supprimer cette partie
         }
 
     try:
@@ -57,8 +57,8 @@ def process_message(message):
             print(f"Capteur {sensor_id} pour la pièce {piece} existe déjà dans la base de données.")
         else:
             # Capteur n'existe pas encore pour cette pièce, l'ajouter
-            cursor.execute("INSERT INTO sensor (sensor_id, piece, emplacement) VALUES (%s, %s, %s)",
-                           (sensor_id, piece, ''))
+            cursor.execute("INSERT INTO sensor (sensor_id, piece) VALUES (%s, %s)",
+                           (sensor_id, piece))
             db.commit()
             print(f"Capteur {sensor_id} inséré dans la base de données pour la pièce {piece}")
     except pymysql.Error as e:
@@ -66,7 +66,7 @@ def process_message(message):
         db.rollback()
 
     try:
-        cursor.execute("INSERT INTO temperaturedata (sensor_id, timestamp, value) VALUES (%s, %s, %s)",
+        cursor.execute("INSERT INTO temperaturedata (sensor_id_id, timestamp, value) VALUES (%s, %s, %s)",
                        (sensor_id, timestamp, value))
         db.commit()
         print("Données insérées avec succès")
