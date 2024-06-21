@@ -12,7 +12,7 @@ def home(request):
 
     for sensor in sensors:
         sensors = Sensor.objects.all()
-        temperature_data = TemperatureData.objects.filter(sensor_id=sensor).order_by('-timestamp')[:10]
+        temperature_data = TemperatureData.objects.filter(sensor_id=sensor) 
         sensor_data.append({
             'sensor': sensor        
             })
@@ -23,4 +23,5 @@ def home(request):
     }
     
     return render(request, 'collecte/home.html', context)
+
 

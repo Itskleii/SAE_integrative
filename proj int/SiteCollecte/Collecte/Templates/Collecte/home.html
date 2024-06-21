@@ -1,4 +1,4 @@
-<!-- collecte/templates/collecte/home.html -->
+<!-- collecte/templates/collecte/home.html 
 
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +46,6 @@
     <div id="sensor_data">
         {% for sensor_item in sensor_data %}
             <div class="sensor-container">
-                <!-- <h2>Pièce :  {{ sensor_item.sensor.piece }}   ---   ID du capteur : {{ sensor_item.sensor.sensor_id }}</h2> -->
                  <li>
                     <h2>Pièce : {{ sensor_item.sensor.piece }}</h2>
                     <h3>ID du capteur : {{ sensor_item.sensor.sensor_id }}</h3>
@@ -60,16 +59,65 @@
             </div>
         {% endfor %}
         
-        <!-- {%for i in temp%}
-        {{i.sensor_id_id.piece}} - {{i.timestamp}}
-        {%endfor%} -->
+        
     </div>
 </body>
 </html> 
+-- >
+collecte/templates/collecte/home.html -->
 
-
-
-
-
-
+<!-- collecte/templates/collecte/home.html -->
  
+
+<!---->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil - SiteCollecte</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bienvenue sur SiteCollecte</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID Capteur</th>
+                <th>Pièce</th>
+                <th>Date d'Ajout</th>
+                <th>Température (°C)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for temp_item in temp %}
+                {% for sensor_item in sensor_data %}
+                        <tr>
+                            <td>{{ sensor_item.sensor.sensor_id }}</td>
+                            <td>{{ sensor_item.sensor.piece }}</td>
+                            <td>{{ temp_item.timestamp }}</td>
+                            <td>{{ temp_item.value }}</td>
+                        </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
