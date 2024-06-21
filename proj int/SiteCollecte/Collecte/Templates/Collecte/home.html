@@ -1,75 +1,5 @@
-<!-- collecte/templates/collecte/home.html 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil - SiteCollecte</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .sensor-container {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-        .sensor-container h2 {
-            margin-bottom: 5px;
-        }
-        .temperature-list {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .temperature-list li {
-            margin-bottom: 5px;
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            setInterval(function() {
-                $.ajax({
-                    url: window.location.href,
-                    success: function(data) {
-                        $('#sensor_data').html($(data).find('#sensor_data').html());
-                    }
-                });
-            }, 5000); // Actualiser toutes les 5 secondes
-        });
-    </script>
-</head>
-<body>
-    <h1>Bienvenue sur SiteCollecte</h1>
-    
-    <div id="sensor_data">
-        {% for sensor_item in sensor_data %}
-            <div class="sensor-container">
-                 <li>
-                    <h2>Pièce : {{ sensor_item.sensor.piece }}</h2>
-                    <h3>ID du capteur : {{ sensor_item.sensor.sensor_id }}</h3>
-                 </li>
-                <h3>Températures enregistrées</h3>
-                <ul class="temperature-list">
-                    {% for i in temp %}
-                        <li>{{ i.value}}°C - date d'ajout : {{i.timestamp}}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endfor %}
-        
-        
-    </div>
-</body>
-</html> 
--- >
-collecte/templates/collecte/home.html -->
-
 <!-- collecte/templates/collecte/home.html -->
- 
 
-<!---->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,31 +23,55 @@ collecte/templates/collecte/home.html -->
             text-align: left;
         }
     </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Fonction pour charger et mettre à jour les données des capteurs
+            function loadSensorData() {
+                $.ajax({
+                    url: '{% url 'collecte:home' %}',  // URL de votre vue Django
+                    success: function(data) {
+                        $('#sensor_data').html($(data).find('#sensor_data').html());
+                    }
+                });
+            }
+
+            // Appel initial au chargement de la page
+            loadSensorData();
+
+            // Actualiser les données toutes les 5 secondes
+            setInterval(loadSensorData, 5000);
+        });
+    </script>
 </head>
 <body>
     <h1>Bienvenue sur SiteCollecte</h1>
     
-    <table>
-        <thead>
-            <tr>
-                <th>ID Capteur</th>
-                <th>Pièce</th>
-                <th>Date d'Ajout</th>
-                <th>Température (°C)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for temp_item in temp %}
-                {% for sensor_item in sensor_data %}
+    <div id="sensor_data">
+        <table>
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>ID Capteur</th>
+                    <th>Pièce</th>
+                    <th>Date d'Ajout</th>
+                    <th>Température (°C)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for temp_item in temp %}
+                    {% for sensor_item in sensor_data %}
                         <tr>
+                            <td>{{ temp_item.id }} </td>
                             <td>{{ sensor_item.sensor.sensor_id }}</td>
                             <td>{{ sensor_item.sensor.piece }}</td>
                             <td>{{ temp_item.timestamp }}</td>
-                            <td>{{ temp_item.value }}</td>
+                            <td>{{ temp_item.value }}°C</td>    
                         </tr>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>
