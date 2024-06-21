@@ -46,9 +46,11 @@
     <div id="sensor_data">
         {% for sensor_item in sensor_data %}
             <div class="sensor-container">
-                <h2>{{ sensor_item.sensor.piece }} - {{ sensor_item.sensor.sensor_id }}</h2>
-
-                
+                <!-- <h2>Pièce :  {{ sensor_item.sensor.piece }}   ---   ID du capteur : {{ sensor_item.sensor.sensor_id }}</h2> -->
+                 <li>
+                    <h2>Pièce : {{ sensor_item.sensor.piece }}</h2>
+                    <h3>ID du capteur : {{ sensor_item.sensor.sensor_id }}</h3>
+                 </li>
                 <h3>Températures enregistrées</h3>
                 <ul class="temperature-list">
                     {% for i in temp %}
