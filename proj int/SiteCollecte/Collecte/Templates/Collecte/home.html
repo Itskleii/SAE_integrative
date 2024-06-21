@@ -1,5 +1,3 @@
-<!-- collecte/templates/collecte/home.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +20,13 @@
             padding: 10px;
             text-align: left;
         }
+        th {
+            cursor: pointer;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
@@ -41,6 +46,48 @@
 
             // Actualiser les données toutes les 5 secondes
             setInterval(loadSensorData, 5000);
+
+            // Fonction de tri
+            function sortTable(table, column, order) {
+                var rows = table.find('tbody > tr').get();
+                rows.sort(function(a, b) {
+                    var A = $(a).children('td').eq(column).text().toUpperCase();
+                    var B = $(b).children('td').eq(column).text().toUpperCase();
+                    if ($.isNumeric(A) && $.isNumeric(B)) {
+                        A = parseFloat(A);
+                        B = parseFloat(B);
+                    }
+                    if (A < B) {
+                        return order == 'asc' ? -1 : 1;
+                    }
+                    if (A > B) {
+                        return order == 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+
+                $.each(rows, function(index, row) {
+                    table.children('tbody').append(row);
+                });
+            }
+
+            // Gérer le clic sur les en-têtes de colonnes
+            $('th').click(function() {
+                var table = $(this).parents('table').eq(0);
+                var index = $(this).index();
+                var order = $(this).data('order') || 'asc';
+
+                $('th .sort-icon').text('');
+                if (order == 'asc') {
+                    $(this).data('order', 'desc');
+                    $(this).find('.sort-icon').text('↓');
+                } else {
+                    $(this).data('order', 'asc');
+                    $(this).find('.sort-icon').text('↑');
+                }
+
+                sortTable(table, index, order);
+            });
         });
     </script>
 </head>
@@ -51,11 +98,11 @@
         <table>
             <thead>
                 <tr>
-                    <th>Id</th>
-                    <th>ID Capteur</th>
-                    <th>Pièce</th>
-                    <th>Date d'Ajout</th>
-                    <th>Température (°C)</th>
+                    <th>Id<span class="sort-icon"></span></th>
+                    <th>ID Capteur<span class="sort-icon"></span></th>
+                    <th>Pièce<span class="sort-icon"></span></th>
+                    <th>Date d'Ajout<span class="sort-icon"></span></th>
+                    <th>Température (°C)<span class="sort-icon"></span></th>
                 </tr>
             </thead>
             <tbody>

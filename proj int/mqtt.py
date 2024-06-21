@@ -30,7 +30,7 @@ def on_message(client, userdata, msg):
     print(f"Message reçu sur le topic {msg.topic}: {message}")
     
     # Vérifier si le message remplit les critères attendus
-    if 'Id=' not in message or 'piece=' not in message or 'date=' not in message or ('time=' not in message and 'heure=' not in message) or 'temp=' not in message:
+    if 'Id=' not in message or 'piece=' not in message or 'date=' not in message or not in message or 'temp=' not in message:
         print("Message MQTT incomplet ou mal formé. Ignorer le message.")
         return
     process_message(message)
