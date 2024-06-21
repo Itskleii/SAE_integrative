@@ -1,7 +1,9 @@
 import paho.mqtt.client as mqtt
 import pymysql
-from datetime import datetime
+from datetime import datetime, timedelta
+import time
 
+# Paramètres MQTT
 broker = "test.mosquitto.org"
 topic = "IUT/Colmar2024/SAE2.04/Maison1"
 port = 1883
@@ -103,6 +105,23 @@ def process_message(message):
         print(f"Erreur lors de l'insertion des données : {e}")
         db.rollback()
 
+# Fonction pour supprimer les données anciennes
+def delete_old_data():
+    try:
+        # Calculer la date et heure actuelle moins 1 heure
+        cutoff_time = datetime.now() - timedelta(hours=1)
+
+        # Construire et exécuter la requête de suppression
+        sql = "DELETE FROM temperaturedata WHERE timestamp < %s"
+        cursor.execute(sql, (cutoff_time,))
+        db.commit()
+
+        # Afficher un message de confirmation
+        print(f"{cursor.rowcount} enregistrements supprimés avant {cutoff_time}")
+    except pymysql.Error as e:
+        print(f"Erreur lors de la suppression des données : {e}")
+        db.rollback()
+
 # Configuration et lancement du client MQTT
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -110,10 +129,21 @@ client.on_message = on_message
 
 client.connect(broker, port, 60)
 
-# Boucle de réception des messages MQTT
+# Boucle principale
 try:
-    print("Démarrage de la boucle MQTT. Appuyez sur Ctrl+C pour arrêter.")
-    client.loop_forever()
+    print("Démarrage du programme MQTT avec suppression des données anciennes toutes les 30 minutes.")
+    while True:
+        client.loop_start()  # Démarrer la boucle MQTT
+        
+        # Attendre 30 minutes
+        time.sleep(1800)  # 30 minutes = 1800 secondes
+        
+        # Arrêter la boucle MQTT
+        client.loop_stop()
+        
+        # Supprimer les données anciennes
+        delete_old_data()
+
 except KeyboardInterrupt:
     print("Interruption par l'utilisateur. Arrêt du programme.")
     client.disconnect()
