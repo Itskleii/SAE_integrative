@@ -42,7 +42,7 @@ def process_message(message):
         sensors[sensor_id] = {
             'Nom': sensor_id,
             'Piece': piece,
-            'Emplacement': ''  # Vous pouvez supprimer cette partie si vous ne l'utilisez pas
+            'Emplacement': ''  
         }
 
     # Vérifier si l'id du capteur est dans la liste des ids à ignorer
@@ -66,7 +66,7 @@ def process_message(message):
         else:
             print(f"Capteur {sensor_id} existe déjà dans la base de données.")
 
-        # Maintenant, insérer les données dans la table temperaturedata
+        # inséret les données dans la table temperaturedata
         cursor.execute("INSERT INTO temperaturedata (sensor_id, timestamp, value) VALUES (%s, %s, %s)",
                        (sensor_id, timestamp, value))
         db.commit()
