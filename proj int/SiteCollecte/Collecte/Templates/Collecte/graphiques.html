@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphiques - SiteCollecte</title>
+</head>
+<body>
+    <h1>Graphiques des Températures par Capteur</h1>
+
+    {% if graphique %}
+        <img src="data:image/png;base64,{{ graphique }}" alt="Graphique des Températures">
+    {% else %}
+        <p>Aucun graphique disponible.</p>
+    {% endif %}
+
+    <p><a href="{% url 'collecte:home' %}">Retour à la page d'accueil</a></p>
+</body>
+</html>
