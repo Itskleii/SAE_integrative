@@ -60,7 +60,7 @@
     <script>
         var autoRefreshInterval; // Variable pour stocker l'ID de l'intervalle
 
-        // Fonction pour initialiser le tri des colonnes
+        
         function initTableSorting() {
             // Fonction de tri
             function sortTable(table, column, order) {
@@ -68,7 +68,7 @@
                 rows.sort(function(a, b) {
                     var A = $(a).children('td').eq(column).text().toUpperCase();
                     var B = $(b).children('td').eq(column).text().toUpperCase();
-                    if (column === 3) { // Column index for temperature
+                    if (column === 3) { // Column index pour temperature
                         A = parseFloat(A.replace('°C', ''));
                         B = parseFloat(B.replace('°C', ''));
                     } else {
@@ -93,7 +93,7 @@
                 });
             }
 
-            // Gérer le clic sur les en-têtes de colonnes
+            
             $('th').click(function() {
                 var table = $(this).parents('table').eq(0);
                 var index = $(this).index();
@@ -114,21 +114,20 @@
             });
         }
 
-        // Fonction pour démarrer le rafraîchissement automatique
+        // Fonction pour lle rafraîchissement automatique
         function startAutoRefresh() {
             autoRefreshInterval = setInterval(function(){
                 $("#sensor_data").load(window.location.href + " #sensor_data > *", function() {
                     initTableSorting(); // Réappliquer le tri après le chargement des nouvelles données
                 });
-            }, 5000); // Rafraîchir toutes les 5 secondes
+            }, 5000); // temp en ms
         }
 
-        // Fonction pour arrêter le rafraîchissement automatique
         function stopAutoRefresh() {
             clearInterval(autoRefreshInterval);
         }
 
-        // Fonction pour filtrer les données par recherche textuelle
+        // Fonction pour filtrer les données 
         function filterTable() {
             var input, filter, table, tr, td, i, txtValue;
             input = document.getElementById("searchInput");
@@ -151,7 +150,7 @@
             }
         }
 
-        // Fonction pour filtrer les données par plage de dates
+        // Fonction pour filtrer les données par dates
         function filterByDateRange() {
             var fromDate = new Date(document.getElementById("fromDateInput").value);
             var toDate = new Date(document.getElementById("toDateInput").value);
@@ -166,7 +165,7 @@
             });
         }
 
-        // Fonction pour exporter les données vers Excel
+        // exporter les données vers Excel
         function exportToExcel() {
             var wb = XLSX.utils.table_to_book(document.getElementById('table'), {sheet:"Sheet JS"});
             XLSX.writeFile(wb, 'exported_data.xlsx');
@@ -175,9 +174,9 @@
         // Appel à la fonction d'initialisation du tri au chargement du document
         $(document).ready(function(){
             initTableSorting();
-            startAutoRefresh(); // Démarrer le rafraîchissement automatique au chargement
+            startAutoRefresh(); // rafraîchissement automatique au chargement
 
-            // Gérer le clic sur le bouton d'arrêt/activation du rafraîchissement
+            // clic sur le bouton d'arrêt/activation du rafraîchissement
             $('#toggleRefresh').click(function() {
                 if ($(this).hasClass('active')) {
                     stopAutoRefresh();
