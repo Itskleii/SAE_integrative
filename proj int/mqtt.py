@@ -29,7 +29,6 @@ def on_message(client, userdata, msg):
     process_message(message)
 
 # Fonction pour traiter les messages reçus
-# DOWN POUR LINSTANT VOIR PUR TOUJOURS ON DIT MERCI A CELUI QUI A CHANGER LE BROKER CE FILS 
 def process_message(message):
     data = {}
 
@@ -43,7 +42,7 @@ def process_message(message):
         sensors[sensor_id] = {
             'Nom': sensor_id,
             'Piece': piece,
-            'Emplacement': ''  # Si vous ne l'utilisez pas, vous pouvez supprimer cette partie
+            'Emplacement': ''  # Vous pouvez supprimer cette partie si vous ne l'utilisez pas
         }
 
     # Vérifier si l'id du capteur est dans la liste des ids à ignorer
@@ -55,40 +54,26 @@ def process_message(message):
     timestamp = datetime.strptime(f"{data['date']} {data['time']}", "%d/%m/%Y %H:%M:%S")
     value = float(data['temp'])
 
-    # Vérifier si le capteur existe déjà pour cette pièce
-    if sensor_id not in sensors:
-        sensors[sensor_id] = {
-            'Nom': sensor_id,
-            'Piece': piece,
-            'Emplacement': ''  # Si vous ne l'utilisez pas, vous pouvez supprimer cette partie
-        }
-
     try:
-        cursor.execute("SELECT id FROM sensor WHERE sensor_id = %s AND piece = %s", (sensor_id, piece))
+        cursor.execute("SELECT sensor_id FROM sensor WHERE sensor_id = %s", (sensor_id,))
         existing_sensor = cursor.fetchone()
 
-        if existing_sensor:
-            # Capteur existant, ne rien faire ici
-            print(f"Capteur {sensor_id} pour la pièce {piece} existe déjà dans la base de données.")
-        else:
-            # Capteur n'existe pas encore pour cette pièce, l'ajouter
-            cursor.execute("INSERT INTO sensor (sensor_id, piece) VALUES (%s, %s)",
-                           (sensor_id, piece))
+        if not existing_sensor:
+            # Capteur n'existe pas encore, l'ajouter dans la table sensor
+            cursor.execute("INSERT INTO sensor (sensor_id, piece) VALUES (%s, %s)", (sensor_id, piece))
             db.commit()
-            print(f"Capteur {sensor_id} inséré dans la base de données pour la pièce {piece}")
-    except pymysql.Error as e:
-        print(f"Erreur lors de l'insertion ou vérification du capteur {sensor_id} : {e}")
-        db.rollback()
+            print(f"Capteur {sensor_id} ajouté dans la base de données pour la pièce {piece}")
+        else:
+            print(f"Capteur {sensor_id} existe déjà dans la base de données.")
 
-    try:
-        cursor.execute("INSERT INTO temperaturedata (sensor_id_id, timestamp, value) VALUES (%s, %s, %s)",
+        # Maintenant, insérer les données dans la table temperaturedata
+        cursor.execute("INSERT INTO temperaturedata (sensor_id, timestamp, value) VALUES (%s, %s, %s)",
                        (sensor_id, timestamp, value))
         db.commit()
         print("Données insérées avec succès")
     except pymysql.Error as e:
         print(f"Erreur lors de l'insertion des données : {e}")
         db.rollback()
-# Fonction pour traiter les messages reçus
 
 # Configuration et lancement du client MQTT
 client = mqtt.Client()
