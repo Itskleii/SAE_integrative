@@ -1,5 +1,3 @@
-<!-- collecte/templates/collecte/home.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,48 +20,232 @@
             padding: 10px;
             text-align: left;
         }
+        th {
+            cursor: pointer;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+        .btn-container {
+            margin-top: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            padding: 8px;
+            width: 300px;
+            font-size: 1em;
+        }
+        .date-filter-container {
+            margin-bottom: 20px;
+        }
+        .date-filter-input {
+            padding: 8px;
+            font-size: 1em;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
     <script>
-        $(document).ready(function() {
-            // Fonction pour charger et mettre à jour les données des capteurs
-            function loadSensorData() {
-                $.ajax({
-                    url: '{% url 'collecte:home' %}',  // URL de votre vue Django
-                    success: function(data) {
-                        $('#sensor_data').html($(data).find('#sensor_data').html());
+        var autoRefreshInterval; // Variable pour stocker l'ID de l'intervalle
+
+        // Fonction pour initialiser le tri des colonnes
+        function initTableSorting() {
+            // Fonction de tri
+            function sortTable(table, column, order) {
+                var rows = table.find('tbody > tr').get();
+                rows.sort(function(a, b) {
+                    var A = $(a).children('td').eq(column).text().toUpperCase();
+                    var B = $(b).children('td').eq(column).text().toUpperCase();
+                    if (column === 3) { // Column index for temperature
+                        A = parseFloat(A.replace('°C', ''));
+                        B = parseFloat(B.replace('°C', ''));
+                    } else {
+                        A = A.toUpperCase();
+                        B = B.toUpperCase();
                     }
+                    if ($.isNumeric(A) && $.isNumeric(B)) {
+                        A = parseFloat(A);
+                        B = parseFloat(B);
+                    }
+                    if (A < B) {
+                        return order === 'asc' ? -1 : 1;
+                    }
+                    if (A > B) {
+                        return order === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+
+                $.each(rows, function(index, row) {
+                    table.children('tbody').append(row);
                 });
             }
 
-            // Appel initial au chargement de la page
-            loadSensorData();
+            // Gérer le clic sur les en-têtes de colonnes
+            $('th').click(function() {
+                var table = $(this).parents('table').eq(0);
+                var index = $(this).index();
+                var order = $(this).data('order') || 'asc';
 
-            // Actualiser les données toutes les 5 secondes
-            setInterval(loadSensorData, 5000);
+                // Réinitialiser les icônes de tri
+                table.find('th .sort-icon').text('');
+
+                if (order === 'asc') {
+                    $(this).data('order', 'desc');
+                    $(this).find('.sort-icon').text('↓');
+                } else {
+                    $(this).data('order', 'asc');
+                    $(this).find('.sort-icon').text('↑');
+                }
+
+                sortTable(table, index, order);
+            });
+        }
+
+        // Fonction pour démarrer le rafraîchissement automatique
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(function(){
+                $("#sensor_data").load(window.location.href + " #sensor_data > *", function() {
+                    initTableSorting(); // Réappliquer le tri après le chargement des nouvelles données
+                });
+            }, 5000); // Rafraîchir toutes les 5 secondes
+        }
+
+        // Fonction pour arrêter le rafraîchissement automatique
+        function stopAutoRefresh() {
+            clearInterval(autoRefreshInterval);
+        }
+
+        // Fonction pour filtrer les données par recherche textuelle
+        function filterTable() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("table");
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td");
+                let found = false;
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                        }
+                    }
+                }
+                tr[i].style.display = found ? "" : "none";
+            }
+        }
+
+        // Fonction pour filtrer les données par plage de dates
+        function filterByDateRange() {
+            var fromDate = new Date(document.getElementById("fromDateInput").value);
+            var toDate = new Date(document.getElementById("toDateInput").value);
+
+            $("#table tbody tr").each(function() {
+                var rowDate = new Date($(this).find("td:eq(2)").text().trim());
+                if (rowDate >= fromDate && rowDate <= toDate) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+
+        // Fonction pour exporter les données vers Excel
+        function exportToExcel() {
+            var wb = XLSX.utils.table_to_book(document.getElementById('table'), {sheet:"Sheet JS"});
+            XLSX.writeFile(wb, 'exported_data.xlsx');
+        }
+
+        // Appel à la fonction d'initialisation du tri au chargement du document
+        $(document).ready(function(){
+            initTableSorting();
+            startAutoRefresh(); // Démarrer le rafraîchissement automatique au chargement
+
+            // Gérer le clic sur le bouton d'arrêt/activation du rafraîchissement
+            $('#toggleRefresh').click(function() {
+                if ($(this).hasClass('active')) {
+                    stopAutoRefresh();
+                    $(this).removeClass('active').text('Démarrer le Rafraîchissement');
+                } else {
+                    startAutoRefresh();
+                    $(this).addClass('active').text('Arrêter le Rafraîchissement');
+                }
+            });
+
+            // Gérer le changement dans le champ de recherche
+            $('#searchInput').on('keyup', function() {
+                filterTable();
+            });
+
+            // Gérer le changement dans les champs de date
+            $('#fromDateInput, #toDateInput').on('change', function() {
+                filterByDateRange();
+            });
+
+            // Gérer le clic sur le bouton de filtrage par date
+            $('#filterByDateBtn').click(function() {
+                filterByDateRange();
+            });
+
+            // Gérer le clic sur le bouton d'export vers Excel
+            $('#exportToExcelBtn').click(function() {
+                exportToExcel();
+            });
         });
     </script>
 </head>
 <body>
     <h1>Bienvenue sur SiteCollecte</h1>
+    <a href="/reset/">Vider la base de données</a>
     
+    <div class="btn-container">
+        <a href="{% url 'collecte:graphiques' %}" class="btn">Voir les Graphiques</a>
+        <button id="toggleRefresh" class="btn active">Arrêter le Rafraîchissement</button>
+        <button id="exportToExcelBtn" class="btn">Exporter vers Excel</button>
+    </div>
+    
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Rechercher...">
+    </div>
+
+    <div class="date-filter-container">
+        <label for="fromDateInput">De :</label>
+        <input type="date" id="fromDateInput" class="date-filter-input">
+        <label for="toDateInput">À :</label>
+        <input type="date" id="toDateInput" class="date-filter-input">
+        <button id="filterByDateBtn" class="btn">Filtrer par Date</button>
+    </div>
+
     <div id="sensor_data">
-        <table>
+        <table id="table">
             <thead>
                 <tr>
-                    <th>Id</th>
-                    <th>ID Capteur</th>
-                    <th>Pièce</th>
-                    <th>Date d'Ajout</th>
-                    <th>Température (°C)</th>
+                    <th>ID Capteur<span class="sort-icon"></span></th>
+                    <th>Pièce<span class="sort-icon"></span></th>
+                    <th>Date d'Ajout<span class="sort-icon"></span></th>
+                    <th>Température<span class="sort-icon"></span></th>
                 </tr>
             </thead>
             <tbody>
                 {% for sensor_item in sensor_data %}
-                {% for temp_item in temp %}
-                    
+                    {% for temp_item in sensor_item.temperature_data %}
                         <tr>
-                            <td>{{ temp_item.id }} </td>
                             <td>{{ sensor_item.sensor.sensor_id }}</td>
                             <td>{{ sensor_item.sensor.piece }}</td>
                             <td>{{ temp_item.timestamp }}</td>
