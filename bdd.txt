@@ -1,0 +1,14 @@
+CREATE TABLE sensor (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	sensor_id VARCHAR(255) NOT NULL UNIQUE,
+	piece VARCHAR(255)
+);
+
+
+CREATE TABLE temperaturedata (
+	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	timestamp DATETIME(6) NOT NULL,
+	value DOUBLE NOT NULL,
+	sensor_id VARCHAR(255) NOT NULL,
+	FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id)
+);
