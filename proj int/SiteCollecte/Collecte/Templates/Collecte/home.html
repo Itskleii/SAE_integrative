@@ -54,13 +54,23 @@
             padding: 8px;
             font-size: 1em;
         }
+        .edit-form {
+            display: none;
+            margin-top: 20px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
     <script>
         var autoRefreshInterval; // Variable pour stocker l'ID de l'intervalle
 
-        
+        // Fonction pour ouvrir le formulaire de modification
+        function openEditForm(sensorId, piece) {
+            $('#editSensorId').val(sensorId);
+            $('#editPiece').val(piece);
+            $('#editForm').show();
+        }
+
         function initTableSorting() {
             // Fonction de tri
             function sortTable(table, column, order) {
@@ -239,6 +249,7 @@
                     <th>Pièce<span class="sort-icon"></span></th>
                     <th>Date d'Ajout<span class="sort-icon"></span></th>
                     <th>Température<span class="sort-icon"></span></th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -248,12 +259,25 @@
                             <td>{{ sensor_item.sensor.sensor_id }}</td>
                             <td>{{ sensor_item.sensor.piece }}</td>
                             <td>{{ temp_item.timestamp }}</td>
-                            <td>{{ temp_item.value }}°C</td>    
+                            <td>{{ temp_item.value }}°C</td>
+                            <td><a href="{% url 'collecte:update_sensor' sensor_item.sensor.sensor_id %}">Modifier</a></td>
                         </tr>
                     {% endfor %}
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <div id="editForm" class="edit-form">
+        <h2>Modifier Capteur</h2>
+        <form method="post" action="/update_sensor/">
+            {% csrf_token %}
+            <label for="editSensorId">ID Capteur:</label>
+            <input type="text" id="editSensorId" name="sensor_id" readonly>
+            <label for="editPiece">Pièce:</label>
+            <input type="text" id="editPiece" name="piece">
+            <button type="submit" class="btn">Enregistrer</button>
+        </form>
     </div>
 </body>
 </html>
