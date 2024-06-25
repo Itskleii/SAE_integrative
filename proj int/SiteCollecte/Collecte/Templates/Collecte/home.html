@@ -58,6 +58,9 @@
             display: none;
             margin-top: 20px;
         }
+        .actions-column {
+            display: none; /* Cache la colonne Actions */
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
@@ -166,7 +169,7 @@
             var toDate = new Date(document.getElementById("toDateInput").value);
 
             $("#table tbody tr").each(function() {
-                var rowDate = new Date($(this).find("td:eq(2)").text().trim());
+                var rowDate = new Date($(this).find("td:eq(3)").text().trim());
                 if (rowDate >= fromDate && rowDate <= toDate) {
                     $(this).show();
                 } else {
@@ -175,11 +178,31 @@
             });
         }
 
-        // exporter les données vers Excel
+        // Fonction pour exporter les données vers Excel
         function exportToExcel() {
-            var wb = XLSX.utils.table_to_book(document.getElementById('table'), {sheet:"Sheet JS"});
+            // Cloner le tableau pour l'exportation
+            var tableClone = document.getElementById('table').cloneNode(true);
+
+            // Récupérer l'en-tête du tableau et supprimer la colonne "Actions"
+            var headerRow = tableClone.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0];
+            var actionsColumnIndex = 5; // Index de la colonne "Actions" (commence à 0)
+
+            // Supprimer la colonne "Actions" de l'en-tête
+            headerRow.deleteCell(actionsColumnIndex);
+
+            // Récupérer les lignes de données du tableau et supprimer la colonne "Actions"
+            var dataRows = tableClone.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            for (var i = 0; i < dataRows.length; i++) {
+                dataRows[i].deleteCell(actionsColumnIndex);
+            }
+
+            // Convertir le tableau cloné en classeur Excel
+            var wb = XLSX.utils.table_to_book(tableClone, {sheet:"Sheet JS"});
+
+            // Télécharger le fichier Excel
             XLSX.writeFile(wb, 'exported_data.xlsx');
         }
+
 
         // Appel à la fonction d'initialisation du tri au chargement du document
         $(document).ready(function(){
@@ -236,9 +259,9 @@
 
     <div class="date-filter-container">
         <label for="fromDateInput">De :</label>
-        <input type="date" id="fromDateInput" class="date-filter-input">
+        <input type="datetime-local" id="fromDateInput" class="date-filter-input">
         <label for="toDateInput">À :</label>
-        <input type="date" id="toDateInput" class="date-filter-input">
+        <input type="datetime-local" id="toDateInput" class="date-filter-input">
         <button id="filterByDateBtn" class="btn">Filtrer par Date</button>
     </div>
 
@@ -270,7 +293,7 @@
             </tbody>
         </table>
     </div>
-
+    
     <div id="editForm" class="edit-form">
         <h2>Modifier Capteur</h2>
         <form method="post" action="/update_sensor/">
@@ -282,5 +305,4 @@
             <button type="submit" class="btn">Enregistrer</button>
         </form>
     </div>
-</body>
-</html>
+    
