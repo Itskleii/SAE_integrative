@@ -227,6 +227,7 @@
         <a href="{% url 'collecte:graphiques' %}" class="btn">Voir les Graphiques</a>
         <button id="toggleRefresh" class="btn active">Arrêter le Rafraîchissement</button>
         <button id="exportToExcelBtn" class="btn">Exporter vers Excel</button>
+        <p></p>
     </div>
     
     <div class="search-container">
@@ -246,6 +247,7 @@
             <thead>
                 <tr>
                     <th>ID Capteur<span class="sort-icon"></span></th>
+                    <th>Nom<span class="sort-icon"></span></th>
                     <th>Pièce<span class="sort-icon"></span></th>
                     <th>Date d'Ajout<span class="sort-icon"></span></th>
                     <th>Température<span class="sort-icon"></span></th>
@@ -257,6 +259,7 @@
                     {% for temp_item in sensor_item.temperature_data %}
                         <tr>
                             <td>{{ sensor_item.sensor.sensor_id }}</td>
+                            <td>{{ sensor_item.sensor.name }}</td>
                             <td>{{ sensor_item.sensor.piece }}</td>
                             <td>{{ temp_item.timestamp }}</td>
                             <td>{{ temp_item.value }}°C</td>

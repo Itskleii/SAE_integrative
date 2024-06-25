@@ -4,8 +4,9 @@ from django.db import models
 
 class Sensor(models.Model):
     sensor_id = models.CharField(max_length=255, primary_key=True)
+    name = models.CharField(max_length=255, null=True)
+    emplacement = models.CharField(max_length=255, null=True, blank=True)
     piece = models.CharField(max_length=255, null=True)
-    # name = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = 'sensor'
