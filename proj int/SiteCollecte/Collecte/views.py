@@ -6,6 +6,7 @@ from io import BytesIO
 import base64
 from django.views.decorators.csrf import csrf_protect
 from .forms import SensorForm
+from django.http import JsonResponse
 
 def home(request):
     sensors = Sensor.objects.all()
@@ -48,31 +49,31 @@ def graphiques(request):
             'temperatures': sensor_temperatures
         })
 
-    # Génération du graphique
-    plt.figure(figsize=(10, 6))
-    for sensor in sensor_data:
-        plt.plot(sensor['temperatures'], label=sensor['sensor'].piece)
-    plt.xlabel('Temps')
-    plt.ylabel('Température (°C)')
-    plt.title('Graphique des Températures par Capteur')
-    plt.legend()
+def get_all_sensor_data(request):
+    try:
+        data = TemperatureData.objects.all().order_by('timestamp')
+        response_data = {}
+        for entry in data:
+            sensor_id = str(entry.sensor.sensor_id)  # Utiliser l'ID du capteur comme clé
+            sensor_name = entry.sensor.piece  # Nom du capteur
+            if sensor_id not in response_data:
+                response_data[sensor_id] = {
+                    'name': sensor_name,
+                    'values': []
+                }
+            response_data[sensor_id]['values'].append({
+                'timestamp': entry.timestamp.isoformat(),  # Convertir en format ISO pour JSON
+                'value': float(entry.value)
+            })
+        print("Données renvoyées:", response_data)  # Ajout du message de console
+        return JsonResponse(response_data, safe=False)
+    except Exception as e:
+        print("Erreur lors de la récupération des données des capteurs:", e)
+        return JsonResponse({"error": str(e)}, status=500)
+
+def indexgraph(request):
+    return render(request, 'Collecte/graphiques.html')
     
-    # Conversion du graphique en image pour l'afficher dans le template
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    image_png = buffer.getvalue()
-    buffer.close()
-
-    graphique = base64.b64encode(image_png).decode('utf-8')
-    plt.close()
-
-    context = {
-        'graphique': graphique
-    }
-
-    return render(request, 'collecte/graphiques.html', context)
-
 @csrf_protect
 def update_sensor(request, sensor_id):
     sensor = get_object_or_404(Sensor, sensor_id=sensor_id)
