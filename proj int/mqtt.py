@@ -16,6 +16,7 @@ db = pymysql.connect(
 cursor = db.cursor()
 
 sensors = {}
+messages = []
 
 # Callback de connexion MQTT
 def on_connect(client, userdata, flags, rc):
@@ -27,8 +28,15 @@ def on_message(client, userdata, msg):
     message = msg.payload.decode('utf-8')
     print(f"Message reçu sur le topic {msg.topic}: {message}")
     process_message(message)
+    print(msg.topic + " " + str(msg.payload))
+    messages.append(msg.topic + " " + str(msg.payload))
 
-# Fonction pour traiter les messages reçus
+def write_messages_to_file(messages):
+    with open("messages.txt", "w") as file:
+        for message in messages:
+            file.write(message + "\n")
+
+# Fonction pour traiter les messages reçus0
 def process_message(message):
     data = {}
 
@@ -38,11 +46,13 @@ def process_message(message):
 
     sensor_id = data['Id']
     piece = data['piece']
+    nom = data.get('nom', sensor_id)  # Use sensor_id as nom if 'nom' is not provided in the message
+
     if sensor_id not in sensors:
         sensors[sensor_id] = {
             'Nom': sensor_id,
             'Piece': piece,
-            'Emplacement': ''  
+            'Emplacement': ''
         }
 
     # Vérifier si l'id du capteur est dans la liste des ids à ignorer
@@ -60,7 +70,7 @@ def process_message(message):
 
         if not existing_sensor:
             # Capteur n'existe pas encore, l'ajouter dans la table sensor
-            cursor.execute("INSERT INTO sensor (sensor_id, piece) VALUES (%s, %s)", (sensor_id, piece))
+            cursor.execute("INSERT INTO sensor (sensor_id, nom, piece) VALUES (%s, %s, %s)", (sensor_id, nom, piece))
             db.commit()
             print(f"Capteur {sensor_id} ajouté dans la base de données pour la pièce {piece}")
         else:
@@ -88,6 +98,7 @@ try:
     client.loop_forever()
 except KeyboardInterrupt:
     print("Interruption par l'utilisateur. Arrêt du programme.")
+    write_messages_to_file(messages)
     client.disconnect()
     cursor.close()
     db.close()
