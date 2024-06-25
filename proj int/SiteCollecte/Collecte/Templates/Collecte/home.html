@@ -263,7 +263,7 @@
                             <td>{{ sensor_item.sensor.piece }}</td>
                             <td>{{ temp_item.timestamp }}</td>
                             <td>{{ temp_item.value }}°C</td>
-                            <td><a href="{% url 'collecte:update_sensor' sensor_item.sensor.sensor_id %}">Modifier</a></td>
+                            <td><a href="{% url 'collecte:update_sensor' sensor_item.sensor.sensor_id %}">Modifier</a> <a href="{% url 'collecte:view_sensor' sensor_item.sensor.sensor_id %}">Voir</a></td>
                         </tr>
                     {% endfor %}
                 {% endfor %}

@@ -86,3 +86,11 @@ def update_sensor(request, sensor_id):
     
     return render(request, 'collecte/update_sensor.html', {'form': form})
 
+def view_sensor(request, sensor_id):
+    sensor = get_object_or_404(Sensor, sensor_id=sensor_id)
+    temperaturedata = TemperatureData.objects.filter(sensor=sensor)
+    
+    return render(request, 'collecte/view_sensor.html', {
+        'sensor': sensor,
+        'temperaturedata': temperaturedata
+    })

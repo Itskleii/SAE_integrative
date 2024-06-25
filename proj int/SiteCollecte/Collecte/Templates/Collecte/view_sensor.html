@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voir le Capteur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .form-container {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        .form-container h2 {
+            text-align: center;
+        }
+        .form-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .form-container table th, .form-container table td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Détails du capteur</h2>
+        <h1>{{ sensor.sensor_id }}</h1>
+        <p><strong>Nom : </strong>{{ sensor.name }}</p>
+        <p><strong>Pièce : </strong>{{ sensor.piece }}</p>
+        <p><strong>Emplacement : </strong>{{ sensor.emplacement }}</p>
+        <table id="table">
+            <thead>
+                <tr>
+                    <th>Date d'Ajout</th>
+                    <th>Température</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for temp_item in temperaturedata %}
+                    <tr>
+                        <td>{{ temp_item.timestamp }}</td>
+                        <td>{{ temp_item.value }}°C</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="../..">Retour</a>
+    </div>
+</body>
+</html>
