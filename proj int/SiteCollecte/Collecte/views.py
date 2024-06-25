@@ -1,9 +1,11 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
 from .models import Sensor, TemperatureData
 import matplotlib.pyplot as plt
 import pymysql
 from io import BytesIO
 import base64
+from django.views.decorators.csrf import csrf_protect
+from .forms import SensorForm
 
 def home(request):
     sensors = Sensor.objects.all()
@@ -70,3 +72,17 @@ def graphiques(request):
     }
 
     return render(request, 'collecte/graphiques.html', context)
+
+@csrf_protect
+def update_sensor(request, sensor_id):
+    sensor = get_object_or_404(Sensor, sensor_id=sensor_id)
+    if request.method == 'POST':
+        form = SensorForm(request.POST, instance=sensor)
+        if form.is_valid():
+            form.save()
+            return redirect('collecte:home')  # Rediriger vers la page d'accueil ou une autre vue après modification
+    else:
+        form = SensorForm(instance=sensor)
+    
+    return render(request, 'collecte/update_sensor.html', {'form': form})
+
