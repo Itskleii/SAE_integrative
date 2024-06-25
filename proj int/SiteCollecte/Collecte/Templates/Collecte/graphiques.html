@@ -3,17 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graphiques - SiteCollecte</title>
+    <title>Graphique des Données</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>Graphiques des Températures par Capteur</h1>
+    <h1 id="titre_graph">Graphique des données</h1>
+    
+    <canvas id="myChart" width="400" height="200"></canvas>
+    <script>
+        async function fetchSensorData() {
+            try {
+                const response = await fetch('/api/all-sensor-data/');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log("Données récupérées de l'API:", data);
+                return data;
+            } catch (error) {
+                console.error("Erreur lors de la récupération des données:", error);
+                return null;
+            }
+        }
 
-    {% if graphique %}
-        <img src="data:image/png;base64,{{ graphique }}" alt="Graphique des Températures">
-    {% else %}
-        <p>Aucun graphique disponible.</p>
-    {% endif %}
+        function getColorForSensor(sensorID) {
+            let colors = JSON.parse(localStorage.getItem('sensorColors')) || {};
+            if (!colors[sensorID]) {
+                colors[sensorID] = getRandomColor();
+                localStorage.setItem('sensorColors', JSON.stringify(colors));
+            }
+            return colors[sensorID];
+        }
 
-    <p><a href="{% url 'collecte:home' %}">Retour à la page d'accueil</a></p>
+        function transformData(data) {
+            const datasets = [];
+
+            for (const [sensorID, sensorData] of Object.entries(data)) {
+                const dataset = {
+                    label: sensorData.name || `Capteur ${sensorID}`,
+                    data: sensorData.values.map(entry => ({
+                        x: parseTimestamp(entry.timestamp),
+                        y: parseFloat(entry.value)
+                    })),
+                    borderColor: getColorForSensor(sensorID),
+                    borderWidth: 1,
+                    radius: 0
+                };
+                datasets.push(dataset);
+            }
+
+            console.log("Jeux de données transformés pour Chart.js:", datasets);
+            return datasets;
+        }
+
+        function parseTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.getMinutes() + date.getSeconds() / 60;
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        async function initChart() {
+            const sensorData = await fetchSensorData();
+            if (sensorData) {
+                const datasets = transformData(sensorData);
+
+                const ctx = document.getElementById('myChart').getContext('2d');
+                const config = {
+                    type: 'line',
+                    data: {
+                        datasets: datasets
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                title: {
+                                    display: true,
+                                    text: 'Minutes'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Température en °C'
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: true
+                            }
+                        }
+                    }
+                };
+                console.log("Configuration Chart.js:", config);
+                new Chart(ctx, config);
+            } else {
+                console.error("Aucune donnée récupérée pour le graphique.");
+            }
+        }
+
+        window.onload = initChart;
+
+        // Ajouter un rafraîchissement automatique de la page toutes les 30 secondes
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+    </script>
 </body>
 </html>
