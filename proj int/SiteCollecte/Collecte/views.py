@@ -23,7 +23,7 @@ def home(request):
         'sensor_data': sensor_data,
     }
     
-    return render(request, 'collecte/home.html', context)
+    return render(request, 'Collecte/home.html', context)
 
 def empty_sql(request):
     db = pymysql.connect(
@@ -35,7 +35,7 @@ def empty_sql(request):
     cursor = db.cursor()
     cursor.execute("TRUNCATE TABLE temperaturedata")
     db.commit()
-    return HttpResponse(request, 'collecte/home.html')
+    return HttpResponse(request, 'Collecte/home.html')
 
 def graphiques(request):
     sensors = Sensor.objects.all()
@@ -85,13 +85,13 @@ def update_sensor(request, sensor_id):
     else:
         form = SensorForm(instance=sensor)
     
-    return render(request, 'collecte/update_sensor.html', {'form': form})
+    return render(request, 'Collecte/update_sensor.html', {'form': form})
 
 def view_sensor(request, sensor_id):
     sensor = get_object_or_404(Sensor, sensor_id=sensor_id)
     temperaturedata = TemperatureData.objects.filter(sensor=sensor)
     
-    return render(request, 'collecte/view_sensor.html', {
+    return render(request, 'Collecte/view_sensor.html', {
         'sensor': sensor,
         'temperaturedata': temperaturedata
     })
